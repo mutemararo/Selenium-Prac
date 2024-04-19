@@ -28,18 +28,6 @@ def scroll_shim(passed_in_driver, object):
     passed_in_driver.execute_script(scroll_by_coord)
     passed_in_driver.execute_script(scroll_nav_out_of_way)
 
-# Function to get image urls from result page
-def get_image_urls(driver):
-    time.sleep(55)
-    image_urls = set()
-
-    thumbnails = driver.find_elements(By.CLASS_NAME, 'article-card__image gc__image')
-
-    for image in thumbnails:
-        if 'http' in image.get_attribute('src').text:
-            image_urls.add(image.get_attribute('src').text)
-            print(f"Found {len(image_urls)}")
-    return image_urls
 
 
 
@@ -111,6 +99,7 @@ desc = []
 date = []
 count = []
 money = []
+image_url = []
 
 j = 0
 while j < len(articles):
@@ -122,15 +111,12 @@ while j < len(articles):
     count.append(ttl.count(search_phrase) + string_list[1].count(search_phrase))
     money.append(True if(ttl.find('$' or 'dollars' or 'USD') != -1 or string_list[1].find('$' or 'dollars' or 'USD') != -1)
                  else False)
+    image_url.append(articles[j].find_element('xpath', './/img[@class="article-card__image gc__image"]').get_attribute('src'))
     j = j + 1
 
-dframe = pd.DataFrame({'title':title, 'description': desc, 'date': date, 'search_phrase count': count, 'currency': money})
+dframe = pd.DataFrame({'title':title, 'description': desc, 'date': date, 'search_phrase count': count, 'currency': money, 'iamge_url': image_url.})
 
 print(dframe)
-# urls = get_image_urls(driver=driver)
-
-# for i, url in enumerate(urls):
-#     print(i, ' : ', url)
 
 # time.sleep(50)
 
