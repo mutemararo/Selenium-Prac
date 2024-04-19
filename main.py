@@ -10,9 +10,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import pandas as pd
 import time
+from PIL import Image
+import requests
+import io
 
-
-search_phrase = "War"
+search_phrase = "quantum"
 options = webdriver.FirefoxOptions()
 
 # Function to scroll to position of 'Show More' Button. 
@@ -28,8 +30,20 @@ def scroll_shim(passed_in_driver, object):
     passed_in_driver.execute_script(scroll_by_coord)
     passed_in_driver.execute_script(scroll_nav_out_of_way)
 
+def download_image(download_path, url, file_name):
+	try:
+		image_content = requests.get(url).content
+		image_file = io.BytesIO(image_content)
+		image = Image.open(image_file)
+		file_path = download_path + file_name
 
+		with open(file_path, "wb") as f:
+			image.save(f, "JPEG")
 
+		print("Success")
+	except Exception as e:
+		print('FAILED -', e)
+                
 
 options.add_argument('--ignore-certificate-errors-spki-list')
 options.add_argument('--ignore-ssl-errors')
@@ -99,8 +113,8 @@ desc = []
 date = []
 count = []
 money = []
-image_url = []
-
+image_urls = []
+image_file_names = []
 j = 0
 while j < len(articles):
     ttl = articles[j].find_element('xpath', './/h3[@class="gc__title"]//span').get_attribute('innerHTML').replace('\n', '')
@@ -111,13 +125,16 @@ while j < len(articles):
     count.append(ttl.count(search_phrase) + string_list[1].count(search_phrase))
     money.append(True if(ttl.find('$' or 'dollars' or 'USD') != -1 or string_list[1].find('$' or 'dollars' or 'USD') != -1)
                  else False)
-    image_url.append(articles[j].find_element('xpath', './/img[@class="article-card__image gc__image"]').get_attribute('src'))
+    image_urls.append(articles[j].find_element('xpath', './/img[@class="article-card__image gc__image"]').get_attribute('src'))
+    image_file_names.append(search_phrase + "_img" + str(j))
     j = j + 1
 
-dframe = pd.DataFrame({'title':title, 'description': desc, 'date': date, 'search_phrase count': count, 'currency': money, 'iamge_url': image_url.})
+dframe = pd.DataFrame({'title':title, 'description': desc, 'date': date, 'search_phrase count': count, 'currency': money, 'iamge_name': image_file_names})
 
 print(dframe)
 
+for i, url in enumerate(image_urls):
+	download_image("C:\\Users\\HP\\Documents\\sampleimg\\", url, search_phrase + "_img" + str(i) + ".jpg")
 # time.sleep(50)
 
 # driver.quit()
