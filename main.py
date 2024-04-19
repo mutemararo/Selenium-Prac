@@ -14,7 +14,7 @@ from PIL import Image
 import requests
 import io
 
-search_phrase = "quantum"
+search_phrase = "church"
 options = webdriver.FirefoxOptions()
 
 # Function to scroll to position of 'Show More' Button. 
@@ -30,6 +30,7 @@ def scroll_shim(passed_in_driver, object):
     passed_in_driver.execute_script(scroll_by_coord)
     passed_in_driver.execute_script(scroll_nav_out_of_way)
 
+# Function to download article image
 def download_image(download_path, url, file_name):
 	try:
 		image_content = requests.get(url).content
@@ -115,12 +116,13 @@ count = []
 money = []
 image_urls = []
 image_file_names = []
+
 j = 0
 while j < len(articles):
-    ttl = articles[j].find_element('xpath', './/h3[@class="gc__title"]//span').get_attribute('innerHTML').replace('\n', '')
+    ttl = articles[j].find_element('xpath', './/h3[@class="gc__title"]//span').get_attribute('innerHTML').replace('\n', '').replace('<br>', '').replace('&nbsp;', '')
     title.append(ttl)
     string_list = articles[j].find_element('xpath', './/div[@class="gc__excerpt"]//p').text.split('...')
-    desc.append(string_list[1].replace('\n', ''))
+    desc.append(string_list[1].replace('\n', '').replace('<br>', '').replace('&nbsp;', ''))
     date.append(string_list[0])
     count.append(ttl.count(search_phrase) + string_list[1].count(search_phrase))
     money.append(True if(ttl.find('$' or 'dollars' or 'USD') != -1 or string_list[1].find('$' or 'dollars' or 'USD') != -1)
@@ -132,9 +134,10 @@ while j < len(articles):
 dframe = pd.DataFrame({'title':title, 'description': desc, 'date': date, 'search_phrase count': count, 'currency': money, 'iamge_name': image_file_names})
 
 print(dframe)
+dframe.to_csv("files\\" + search_phrase + ".csv")
 
 for i, url in enumerate(image_urls):
-	download_image("C:\\Users\\HP\\Documents\\sampleimg\\", url, search_phrase + "_img" + str(i) + ".jpg")
+	download_image("img\\", url, search_phrase + "_img" + str(i) + ".jpg")
 # time.sleep(50)
 
 # driver.quit()
